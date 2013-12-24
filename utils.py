@@ -10,7 +10,6 @@ def load_data(path):
         if not(os.path.samefile(dirname, path)):
             label = os.path.split(dirname)[1]
             for f in files:
-                print(f)
                 _, clip = wav.read(os.path.join(dirname, f))
                 examples[label].append(clip)
     return examples
