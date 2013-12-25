@@ -39,7 +39,7 @@ patch_clusterer.fit(windows)
 X = []
 Y = []
 for key in data_dict.keys()[0:NUM_CHARS]:
-    for example in data_dict[key][0:10]:  # use 5 examples per class to train
+    for example in data_dict[key][0:10]:  # examples per class to train
         (Pxx, freqs, bins, im) = plt.specgram(example)
         patches = features.random_patches(img, 2000)
         patch_counts = [0] * PATCH_TYPES
@@ -49,14 +49,13 @@ for key in data_dict.keys()[0:NUM_CHARS]:
         X.append(patch_counts)
         Y.append(key)
 
-print "fit"
 clf = svm.SVC()
 clf.fit(X,Y)
-print "fit"
 
 
+# Test!
 for key in data_dict.keys()[0:NUM_CHARS]:
-    for example in data_dict[key][0:10]:  # use 5 examples per class to train
+    for example in data_dict[key][0:10]:
         (Pxx, freqs, bins, im) = plt.specgram(example)
         patches = features.random_patches(img, 2000)
         patch_counts = [0] * PATCH_TYPES
