@@ -16,7 +16,7 @@ import features
 
 NUM_CHARS = 2
 PER_CLASS = 10
-PATCH_TYPES = 10
+PATCH_TYPES = 100
 N_PATCHES = 50
 SEED = 12
 N_FOLDS = 2
@@ -36,7 +36,6 @@ X = np.array(X)
 Y = np.array(Y)
 
 for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
-    print(Y[train])
     print("Creating windows...")
     windows = features.generate_windows(X[train], N_PATCHES)
 

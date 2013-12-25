@@ -36,8 +36,9 @@ def random_patch(img, radius=5):
 
 
 def as_img(data):
+    data = np.log(data)
     img = np.zeros(data.shape, np.uint8)
-    img[:] = 5 * (data + 15)  # make all data positive then scale...
+    img[:] = 10 * (data + 20)  # make all data positive then scale...
     return img
 
 
@@ -45,7 +46,14 @@ def generate_windows(audio_samples, patches):
     windows = []
     for example in audio_samples:
         (Pxx, freqs, bins, im) = plt.specgram(example)
-        img = as_img(np.log(Pxx + 1))
+        # print np.min(Pxx)
+        # print np.max(Pxx)
+        # print np.mean(Pxx)
+        # print np.median(Pxx)
+        # print
+        Pxx[Pxx < 1e-8] = 1e-8
+        # plt.show()
+        img = as_img(Pxx)
         plt.clf()  # specgram plots, so clear the plot
         windows.extend(get_slices(img, patches))
 
