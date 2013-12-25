@@ -15,9 +15,9 @@ import utils
 import features
 
 NUM_CHARS = 2
-PER_CLASS = 50
+PER_CLASS = 10
 PATCH_TYPES = 10
-N_PATCHES = 2000
+N_PATCHES = 50
 SEED = 12
 N_FOLDS = 2
 np.random.seed(SEED)
@@ -50,7 +50,7 @@ for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
     for example in X:
         (Pxx, freqs, bins, im) = plt.specgram(example)
         img = features.as_img(Pxx)
-        patches = features.random_patches(img, N_PATCHES)
+        patches = features.get_slices(img, N_PATCHES)
         patch_counts = [0] * PATCH_TYPES
         for patch in patches:
             patch_type = patch_clusterer.predict(patch)[0]
