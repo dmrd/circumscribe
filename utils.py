@@ -4,7 +4,7 @@ import scipy.io.wavfile as wav
 from collections import defaultdict
 
 
-def load_data(path, pad=True):
+def load_data(path, pad=False):
     """ Given path to data directory, returns dictionary of letter: [examples] """
     examples = defaultdict(lambda: list())
     max_l = 0
