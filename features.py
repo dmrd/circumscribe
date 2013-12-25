@@ -1,6 +1,15 @@
+import scipy as sp
 import numpy as np
-from random import random
 import cv2
+import matplotlib.pylab as plt
+from random import random
+from scikits.talkbox.features import mfcc
+# Reference: https://github.com/cournape/talkbox/blob/master/scikits/talkbox/features/mfcc.py
+
+
+def fft(s):
+    return sp.fft(s)
+
 
 SIFT = cv2.SIFT(nfeatures=20)
 BRISK = cv2.BRISK()
@@ -23,10 +32,12 @@ BRISK = cv2.BRISK()
 
 PATCH_RADIUS = 5
 
+
 def random_patches(img, count, radius=5):
     for i in xrange(count):
         patch = random_patch(img, radius=radius)
         yield np.reshape(patch, (2*radius)**2)
+
 
 def random_patch(img, radius=5):
     rx = random()
@@ -36,10 +47,12 @@ def random_patch(img, radius=5):
     cy = int(ry * (rows - 2 * radius - 2)) + radius + 1
     return img[cy-radius:cy+radius, cx-radius:cx+radius]
 
+
 def as_img(data):
     img = np.zeros(data.shape, np.uint8)
-    img[:] = 5 * (data + 15) # make all data positive then scale...
+    img[:] = 5 * (data + 15)  # make all data positive then scale...
     return img
+
 
 def from_specgram(Pxx):
     Pxx = np.log(Pxx)
@@ -50,3 +63,13 @@ def from_specgram(Pxx):
     print SIFT.detect(img)
 
     return [random(), random()]
+
+
+def generate_windows(audio_samples, patches):
+    windows = []
+    for example in audio_samples:
+        (Pxx, freqs, bins, im) = plt.specgram(example)
+        img = as_img(Pxx)
+        plt.clf()  # specgram plots, so clear
+        windows.extend(random_patches(img, patches))
+    return np.array(windows)

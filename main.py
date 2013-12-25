@@ -1,69 +1,76 @@
-import utils
-import features
-
 from time import time
-import numpy as np
 import matplotlib.pylab as plt
+import numpy as np
 
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
+from sklearn.cross_validation import StratifiedKFold
 from sklearn import svm
 
 import cv2
 
-NUM_CHARS = 4
-PATCH_TYPES = 10
+import utils
+import features
 
-np.random.seed(12)
+NUM_CHARS = 2
+PER_CLASS = 50
+PATCH_TYPES = 10
+N_PATCHES = 2000
+SEED = 12
+N_FOLDS = 2
+np.random.seed(SEED)
+
 
 data_dict = utils.load_data('data')
-data = []
 
-SIFT = cv2.SIFT(nfeatures=20)
-
-windows = []
-for key in data_dict.keys()[0:NUM_CHARS]:
-    for example in data_dict[key][0:5]:
-        (Pxx, freqs, bins, im) = plt.specgram(example)
-        img = features.as_img(Pxx)
-        plt.clf() # specgram plots, so clear
-        windows.extend(features.random_patches(img, 1000))
-
-windows = np.array(windows)
-patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=5)
-patch_clusterer.fit(windows)
-
-# Train!
+# Flatten out dictionary to example (X) and label (Y) arrays
 X = []
 Y = []
-for key in data_dict.keys()[0:NUM_CHARS]:
-    for example in data_dict[key][0:10]:  # examples per class to train
-        (Pxx, freqs, bins, im) = plt.specgram(example)
-        patches = features.random_patches(img, 2000)
-        patch_counts = [0] * PATCH_TYPES
-        for patch in patches:
-            patch_type = patch_clusterer.predict(patch)[0]
-            patch_counts[patch_type] += 1
-        X.append(patch_counts)
+for key in data_dict.keys()[:NUM_CHARS]:
+    for example in data_dict[key][:PER_CLASS]:
+        X.append(example)
         Y.append(key)
+X = np.array(X)
+Y = np.array(Y)
 
-clf = svm.SVC()
-clf.fit(X,Y)
+for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
+    print(Y[train])
+    print("Creating windows...")
+    windows = features.generate_windows(X[train], N_PATCHES)
 
+    print("Clustering patches...")
+    patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=5)
+    patch_clusterer.fit(windows)
 
-# Test!
-for key in data_dict.keys()[0:NUM_CHARS]:
-    for example in data_dict[key][0:10]:
+    print("Calculating features for each example...")
+    # Map every sample to its features
+    descriptors = []
+    for example in X:
         (Pxx, freqs, bins, im) = plt.specgram(example)
-        patches = features.random_patches(img, 2000)
+        img = features.as_img(Pxx)
+        patches = features.random_patches(img, N_PATCHES)
         patch_counts = [0] * PATCH_TYPES
         for patch in patches:
             patch_type = patch_clusterer.predict(patch)[0]
             patch_counts[patch_type] += 1
-        prediction = clf.predict(patch_counts)
-        print key, prediction
+        descriptors.append(patch_counts)
+
+    descriptors = np.array(descriptors)
+
+    # Train!
+    print("Training...")
+    clf = svm.SVC()
+    clf.fit(descriptors[train], Y[train])
+
+    print("Testing on training data......")
+    for example, label in zip(descriptors[train], Y[train]):
+        print("{} : {}".format(label, clf.predict(example)))
+
+    print("Testing on new data...")
+    for example, label in zip(descriptors[test], Y[test]):
+        print("{} : {}".format(label, clf.predict(example)))
 
 # data = np.array(data)
 # print data
@@ -80,5 +87,3 @@ for key in data_dict.keys()[0:NUM_CHARS]:
 # print estimator.labels_
 
 # # n_samples, n_features = data.shape
-
-
