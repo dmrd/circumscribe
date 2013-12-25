@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
 from sklearn.cross_validation import StratifiedKFold
 from sklearn import svm
+from classifier import SoundClassifier
 
 import cv2
 
@@ -36,45 +37,20 @@ for key in data_dict.keys()[:NUM_CHARS]:
 X = np.array(X)
 Y = np.array(Y)
 
-for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
-    print("Creating windows...")
-    windows = features.generate_windows(X[train], N_PATCHES)
+for i, (train, test) in StratifiedKFold(Y, n_folds=N_FOLDS):
+    print("Running fold {}".format(i))
+    clf = SoundClassifier(patch_types=PATCH_TYPES,
+                          n_patches=N_PATCHES,
+                          PCA=USE_PCA,
+                          verbose=True)
 
-    print("Clustering patches...")
-    patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=3)
-    patch_clusterer.fit(windows)
+    clf.fit(X[train], Y[train])
 
-    print("Calculating features for each example...")
-    # Map every sample to its features
-    histograms = []
-    for example in X:
-        (Pxx, freqs, bins, im) = plt.specgram(example)
-        img = features.as_img(Pxx)
-        patches = features.get_slices(img, N_PATCHES)
-        patch_counts = [0] * PATCH_TYPES
-        for patch in patches:
-            patch_type = patch_clusterer.predict(patch)[0]
-            patch_counts[patch_type] += 1
-        # print patch_counts
-        histograms.append(patch_counts)
-
-    histograms = np.array(histograms)
-
-    if USE_PCA:
-        print("Finding principal components...")
-        pca = PCA(n_components=10).fit(histograms[train])
-        histograms = pca.transform(histograms)
-
-    # Train!
-    print("Training...")
-    clf = svm.SVC()
-    clf.fit(histograms[train], Y[train])
-
-    print "Testing on training data......", clf.score(histograms[train],Y[train])
-    for example, label in zip(histograms[train], Y[train]):
+    print "Testing on training data......", clf.score(X[train], Y[train])
+    for example, label in zip(X[train], Y[train]):
         print("{} : {}".format(label, clf.predict(example)))
 
-    print "Testing on new data...", clf.score(histograms[test],Y[test])
-    for example, label in zip(histograms[test], Y[test]):
+    print "Testing on new data...", clf.score(X[test], Y[test])
+    for example, label in zip(X[test], Y[test]):
         print("{} : {}".format(label, clf.predict(example)))
 
