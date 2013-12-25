@@ -17,7 +17,7 @@ import features
 USE_PCA = False
 NUM_CHARS = 2
 PER_CLASS = 40
-PATCH_TYPES = 50
+PATCH_TYPES = 120
 N_PATCHES = 100
 SEED = 12
 N_FOLDS = 2
@@ -39,13 +39,10 @@ Y = np.array(Y)
 for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
     print("Creating windows...")
     windows = features.generate_windows(X[train], N_PATCHES)
-    windows2 = features.generate_windows2(X[train], N_PATCHES)
 
     print("Clustering patches...")
     patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=3)
     patch_clusterer.fit(windows)
-    patch_clusterer2 = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=3)
-    patch_clusterer2.fit(windows2)
 
     print("Calculating features for each example...")
     # Map every sample to its features
@@ -54,17 +51,12 @@ for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
         (Pxx, freqs, bins, im) = plt.specgram(example)
         img = features.as_img(Pxx)
         patches = features.get_slices(img, N_PATCHES)
-        patches2 = features.get_slices2(img, N_PATCHES)
         patch_counts = [0] * PATCH_TYPES
-        patch_counts2 = [0] * PATCH_TYPES
         for patch in patches:
             patch_type = patch_clusterer.predict(patch)[0]
             patch_counts[patch_type] += 1
-        for patch in patches2:
-            patch_type2 = patch_clusterer2.predict(patch)[0]
-            patch_counts2[patch_type2] += 1
         # print patch_counts
-        histograms.append(patch_counts + patch_counts2)
+        histograms.append(patch_counts)
 
     histograms = np.array(histograms)
 

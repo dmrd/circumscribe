@@ -10,8 +10,10 @@ from random import random
 def fft(s):
     return sp.fft(s)
 
+
 def flatten(m):
     return np.reshape(m, np.prod(m.shape))
+
 
 def random_patches(img, count, radius=5):
     for i in xrange(count):
@@ -19,20 +21,13 @@ def random_patches(img, count, radius=5):
         shape = patch.shape
         yield flatten(patch)
 
+
 def get_slices(img, count, width=5):
     rows, cols = img.shape
     for i in xrange(count):
         progress = i / (count - 1.0)
         start = int((cols - width) * progress)
         my_slice = img[:60, start:start+width]
-        yield flatten(my_slice)
-
-def get_slices2(img, count, width=5):
-    rows, cols = img.shape
-    for i in xrange(count):
-        progress = i / (count - 1.0)
-        start = int((cols - width) * progress)
-        my_slice = img[60:, start:start+width]
         yield flatten(my_slice)
 
 
@@ -61,15 +56,6 @@ def generate_windows(audio_samples, patches):
 
     return np.array(windows)
 
-def generate_windows2(audio_samples, patches):
-    windows = []
-    for example in audio_samples:
-        (Pxx, freqs, bins, im) = plt.specgram(example)
-        img = as_img(Pxx)
-        plt.clf()  # specgram plots, so clear the plot
-        windows.extend(get_slices2(img, patches))
-
-    return np.array(windows)
 
 def print_stats(Pxx):
     print np.min(Pxx)
