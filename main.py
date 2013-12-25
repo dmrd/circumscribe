@@ -1,22 +1,12 @@
-from time import time
-import matplotlib.pylab as plt
 import numpy as np
 
-from sklearn import metrics
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import scale
 from sklearn.cross_validation import StratifiedKFold
-from sklearn import svm
 from classifier import SoundClassifier
 
-import cv2
-
 import utils
-import features
 
 USE_PCA = False
-NUM_CHARS = 2
+NUM_CHARS = 4
 PER_CLASS = 40
 PATCH_TYPES = 120
 N_PATCHES = 100
@@ -37,8 +27,8 @@ for key in data_dict.keys()[:NUM_CHARS]:
 X = np.array(X)
 Y = np.array(Y)
 
-for i, (train, test) in StratifiedKFold(Y, n_folds=N_FOLDS):
-    print("Running fold {}".format(i))
+for i, (train, test) in enumerate(StratifiedKFold(Y, n_folds=N_FOLDS)):
+    print("Running fold {}".format(i + 1))
     clf = SoundClassifier(patch_types=PATCH_TYPES,
                           n_patches=N_PATCHES,
                           PCA=USE_PCA,
