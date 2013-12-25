@@ -1,6 +1,8 @@
 import numpy as np
+import matplotlib.pylab as plt
 
 from sklearn.cross_validation import StratifiedKFold
+from sklearn.metrics import confusion_matrix
 from classifier import SoundClassifier
 
 import utils
@@ -16,6 +18,9 @@ N_FOLDS = 2
 np.random.seed(SEED)
 
 data_dict = utils.load_data('data')
+
+cm_predictions = []
+cm_labels = []
 
 # Flatten out dictionary to example (X) and label (Y) arrays
 X = []
@@ -37,10 +42,20 @@ for i, (train, test) in enumerate(StratifiedKFold(Y, n_folds=N_FOLDS)):
     clf.fit(X[train], Y[train])
 
     print "Testing on training data......", clf.score(X[train], Y[train])
-    for example, label in zip(X[train], Y[train]):
-        print("{} : {}".format(label, clf.predict(example)))
-
     print "Testing on new data...", clf.score(X[test], Y[test])
-    for example, label in zip(X[test], Y[test]):
-        print("{} : {}".format(label, clf.predict(example)))
+    test_predictions = clf.predict(X[test])
 
+    # Store results for computing confusion matrix after all folds
+    cm_predictions.append(test_predictions)
+    cm_labels.append(Y[test])
+
+# Compute confusion matrix
+cm = confusion_matrix(np.concatenate(cm_labels), np.concatenate(cm_predictions))
+
+# Show confusion matrix in a separate window
+plt.matshow(cm)
+plt.title('Confusion matrix')
+plt.colorbar()
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+plt.show()

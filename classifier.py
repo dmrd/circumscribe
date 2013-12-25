@@ -4,10 +4,11 @@ import matplotlib.pylab as plt
 from sklearn import svm
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.utils import array2d
 
 
-class SoundClassifier(BaseEstimator):
+class SoundClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, patch_types=120, n_patches=100, PCA=False,
                  verbose=False, classifier=None):
         self.patch_types = patch_types
@@ -55,13 +56,10 @@ class SoundClassifier(BaseEstimator):
         return
 
     def predict(self, X):
-        histogram = self._create_histogram(X)
-        return self.classifier.predict(histogram)
-
-    def score(self, X, Y):
-        score = 0.0
-        for example, label in zip(X, Y):
-            pred = self.predict(example)
-            score += (pred == label)
-        return score / len(Y)
-
+        if X.dtype != object:  # dtype of numpy arrays
+            raise Exception("Predict takes an array of items to classify, not a single item")
+        histograms = []
+        for example in X:
+            histograms.append(self._create_histogram(example))
+        histograms = np.array(histograms)
+        return self.classifier.predict(histograms)
