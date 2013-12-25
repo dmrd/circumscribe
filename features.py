@@ -24,7 +24,15 @@ def get_slices(img, count, width=5):
     for i in xrange(count):
         progress = i / (count - 1.0)
         start = int((cols - width) * progress)
-        my_slice = img[:, start:start+width]  # TODO(Bieber): Weird all 75s (0s in Pxx)
+        my_slice = img[:60, start:start+width]
+        yield flatten(my_slice)
+
+def get_slices2(img, count, width=5):
+    rows, cols = img.shape
+    for i in xrange(count):
+        progress = i / (count - 1.0)
+        start = int((cols - width) * progress)
+        my_slice = img[60:, start:start+width]
         yield flatten(my_slice)
 
 
@@ -36,6 +44,7 @@ def random_patch(img, radius=5):
 
 
 def as_img(data):
+    data[data < 1e-8] = 1e-8
     data = np.log(data)
     img = np.zeros(data.shape, np.uint8)
     img[:] = 10 * (data + 20)  # make all data positive then scale...
@@ -46,15 +55,25 @@ def generate_windows(audio_samples, patches):
     windows = []
     for example in audio_samples:
         (Pxx, freqs, bins, im) = plt.specgram(example)
-        # print np.min(Pxx)
-        # print np.max(Pxx)
-        # print np.mean(Pxx)
-        # print np.median(Pxx)
-        # print
-        Pxx[Pxx < 1e-8] = 1e-8
-        # plt.show()
         img = as_img(Pxx)
         plt.clf()  # specgram plots, so clear the plot
         windows.extend(get_slices(img, patches))
 
     return np.array(windows)
+
+def generate_windows2(audio_samples, patches):
+    windows = []
+    for example in audio_samples:
+        (Pxx, freqs, bins, im) = plt.specgram(example)
+        img = as_img(Pxx)
+        plt.clf()  # specgram plots, so clear the plot
+        windows.extend(get_slices2(img, patches))
+
+    return np.array(windows)
+
+def print_stats(Pxx):
+    print np.min(Pxx)
+    print np.max(Pxx)
+    print np.mean(Pxx)
+    print np.median(Pxx)
+    print

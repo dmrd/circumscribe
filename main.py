@@ -14,14 +14,15 @@ import cv2
 import utils
 import features
 
+USE_PCA = False
 NUM_CHARS = 2
-PER_CLASS = 10
-PATCH_TYPES = 100
-N_PATCHES = 50
+PER_CLASS = 40
+PATCH_TYPES = 50
+N_PATCHES = 100
 SEED = 12
 N_FOLDS = 2
-np.random.seed(SEED)
 
+np.random.seed(SEED)
 
 data_dict = utils.load_data('data')
 
@@ -38,51 +39,50 @@ Y = np.array(Y)
 for train, test in StratifiedKFold(Y, n_folds=N_FOLDS):
     print("Creating windows...")
     windows = features.generate_windows(X[train], N_PATCHES)
+    windows2 = features.generate_windows2(X[train], N_PATCHES)
 
     print("Clustering patches...")
-    patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=5)
+    patch_clusterer = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=3)
     patch_clusterer.fit(windows)
+    patch_clusterer2 = KMeans(init='k-means++', n_clusters=PATCH_TYPES, n_init=3)
+    patch_clusterer2.fit(windows2)
 
     print("Calculating features for each example...")
     # Map every sample to its features
-    descriptors = []
+    histograms = []
     for example in X:
         (Pxx, freqs, bins, im) = plt.specgram(example)
         img = features.as_img(Pxx)
         patches = features.get_slices(img, N_PATCHES)
+        patches2 = features.get_slices2(img, N_PATCHES)
         patch_counts = [0] * PATCH_TYPES
+        patch_counts2 = [0] * PATCH_TYPES
         for patch in patches:
             patch_type = patch_clusterer.predict(patch)[0]
             patch_counts[patch_type] += 1
-        descriptors.append(patch_counts)
+        for patch in patches2:
+            patch_type2 = patch_clusterer2.predict(patch)[0]
+            patch_counts2[patch_type2] += 1
+        # print patch_counts
+        histograms.append(patch_counts + patch_counts2)
 
-    descriptors = np.array(descriptors)
+    histograms = np.array(histograms)
+
+    if USE_PCA:
+        print("Finding principal components...")
+        pca = PCA(n_components=10).fit(histograms[train])
+        histograms = pca.transform(histograms)
 
     # Train!
     print("Training...")
     clf = svm.SVC()
-    clf.fit(descriptors[train], Y[train])
+    clf.fit(histograms[train], Y[train])
 
-    print("Testing on training data......")
-    for example, label in zip(descriptors[train], Y[train]):
+    print "Testing on training data......", clf.score(histograms[train],Y[train])
+    for example, label in zip(histograms[train], Y[train]):
         print("{} : {}".format(label, clf.predict(example)))
 
-    print("Testing on new data...")
-    for example, label in zip(descriptors[test], Y[test]):
+    print "Testing on new data...", clf.score(histograms[test],Y[test])
+    for example, label in zip(histograms[test], Y[test]):
         print("{} : {}".format(label, clf.predict(example)))
 
-# data = np.array(data)
-# print data
-# print data.shape
-# reduced_data = PCA(n_components=2).fit_transform(data)
-# print reduced_data
-
-# n_groups = 2
-# print data.shape
-# n_samples, n_features = data.shape
-
-# estimator = KMeans(init='k-means++', n_clusters=n_groups, n_init=10)
-# estimator.fit(data)
-# print estimator.labels_
-
-# # n_samples, n_features = data.shape
