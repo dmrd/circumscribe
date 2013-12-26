@@ -9,16 +9,17 @@ from sklearn.utils import array2d
 
 
 class SoundClassifier(BaseEstimator, ClassifierMixin):
-    def __init__(self, patch_types=120, n_patches=100, PCA=False,
+    def __init__(self, patch_types=120, n_patches=100, use_pca=False,
                  verbose=False, classifier=None):
         self.patch_types = patch_types
         self.n_patches = n_patches
-        self.PCA = PCA
+        self.use_pca = use_pca
         self.classifier = classifier or svm.SVC()
         self.verbose = verbose
 
     def _create_histogram(self, example):
         (Pxx, freqs, bins, im) = plt.specgram(example)
+        plt.clf()  # specgram plots so we clear
         img = features.as_img(Pxx)
         patches = features.get_slices(img, self.n_patches)
         patch_counts = [0] * self.patch_types
@@ -44,7 +45,7 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
             histograms.append(self._create_histogram(example))
         histograms = np.array(histograms)
 
-        if self.PCA:
+        if self.use_pca:
             if self.verbose:
                 print("Finding principal components...")
             pca = PCA(n_components=10).fit(histograms)

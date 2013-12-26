@@ -8,7 +8,7 @@ from classifier import SoundClassifier
 import utils
 
 USE_PCA = False
-NUM_CHARS = 4
+NUM_CHARS = 3
 PER_CLASS = 40
 PATCH_TYPES = 120
 N_PATCHES = 100
@@ -36,7 +36,7 @@ for i, (train, test) in enumerate(StratifiedKFold(Y, n_folds=N_FOLDS)):
     print("Running fold {}".format(i + 1))
     clf = SoundClassifier(patch_types=PATCH_TYPES,
                           n_patches=N_PATCHES,
-                          PCA=USE_PCA,
+                          use_pca=USE_PCA,
                           verbose=True)
 
     clf.fit(X[train], Y[train])
