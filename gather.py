@@ -61,7 +61,7 @@ class Recorder(object):
         print("Beginning recording")
         i = 1
         while not self.done:
-            name = "{}_{}.wav".format(prefix, i)
+            name = "{}{}.wav".format(prefix, i)
             self.record_sample(name)
             print("Sample {}".format(i))
             i += 1

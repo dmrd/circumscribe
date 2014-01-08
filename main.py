@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pylab as plt
+import sys
 
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import confusion_matrix
@@ -8,8 +9,8 @@ from classifier import SoundClassifier
 import utils
 
 USE_PCA = False
-NUM_CHARS = 3
-PER_CLASS = 40
+NUM_CHARS = 50
+PER_CLASS = 100
 PATCH_TYPES = 120
 N_PATCHES = 100
 SEED = 12
@@ -17,7 +18,14 @@ N_FOLDS = 2
 
 np.random.seed(SEED)
 
-data_dict = utils.load_data('data')
+if len(sys.argv) >= 2:
+    data_dir = sys.argv[1]
+else:
+    print("Give directory to load data from as first argument")
+    exit()
+
+data_dict = utils.load_data(data_dir)
+print(data_dict.keys()[:NUM_CHARS])
 
 cm_predictions = []
 cm_labels = []
