@@ -14,7 +14,7 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
         self.patch_types = patch_types
         self.n_patches = n_patches
         self.use_pca = use_pca
-        self.classifier = classifier or svm.SVC()
+        self.classifier = classifier or svm.SVC(probability=True)
         self.verbose = verbose
 
     def _create_histogram(self, example):
@@ -64,3 +64,12 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
             histograms.append(self._create_histogram(example))
         histograms = np.array(histograms)
         return self.classifier.predict(histograms)
+
+    def predict_proba(self, X):
+        if X.dtype != object:  # dtype of numpy arrays
+            raise Exception("Predict takes an array of items to classify, not a single item")
+        histograms = []
+        for example in X:
+            histograms.append(self._create_histogram(example))
+        histograms = np.array(histograms)
+        return self.classifier.predict_proba(histograms)
