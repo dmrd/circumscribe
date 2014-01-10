@@ -1,4 +1,5 @@
 import os
+import random
 import numpy as np
 import scipy.io.wavfile as wav
 from collections import defaultdict
@@ -56,3 +57,18 @@ def pcm2float(sig, dtype=np.float64):
     # Note that 'min' has a greater (by 1) absolute value than 'max'!
     # Therefore, we use 'min' here to avoid clipping.
     return sig.astype(dtype) / dtype.type(-np.iinfo(sig.dtype).min)
+
+
+def prob_position(clf, X, Y):
+    probs = clf.predict_proba(X)
+    results = []
+    for label, prob in zip(Y, probs):
+        ordered = reversed(sorted(zip(prob, clf.classifier.classes_)))
+        found = False
+        for i, (p, l) in enumerate(ordered):
+            if l == label:
+                results.append(i)
+                found = True
+        if found is False:
+            result.append(None)
+    return np.array(results)

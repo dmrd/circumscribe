@@ -28,7 +28,7 @@ def get_slices(img, count, width=5):
         progress = i / (count - 1.0)
         start = int((cols - width) * progress)
         my_slice = img[:60, start:start+width]
-        yield flatten(my_slice)
+        yield np.array(flatten(my_slice), dtype=float)
 
 
 def random_patch(img, radius=5):
@@ -54,7 +54,7 @@ def generate_windows(audio_samples, patches):
         plt.clf()  # specgram plots, so clear the plot
         windows.extend(get_slices(img, patches))
 
-    return np.array(windows)
+    return np.array(windows, dtype=float)
 
 
 def print_stats(Pxx):

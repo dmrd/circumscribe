@@ -5,16 +5,20 @@ from sklearn import svm
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.utils import array2d
 
 
 class SoundClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, patch_types=120, n_patches=100, use_pca=False,
-                 verbose=False, classifier=None):
+                 verbose=False, classifier=None, patch_clusterer=None):
+        """
+        n_patches: number of patches to generate from a single sample
+        patch_types: Number of clusters for the k-means
+        """
         self.patch_types = patch_types
         self.n_patches = n_patches
         self.use_pca = use_pca
         self.classifier = classifier or svm.SVC(probability=True)
+        self.patch_clusterer = patch_clusterer or None
         self.verbose = verbose
 
     def _create_histogram(self, example):
@@ -35,7 +39,8 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
 
         if self.verbose:
             print("Clustering patches...")
-        self.patch_clusterer = KMeans(init='k-means++', n_clusters=self.patch_types, n_init=3)
+        if self.patch_clusterer is None:
+            self.patch_clusterer = KMeans(init='k-means++', n_clusters=self.patch_types, n_init=3)
         self.patch_clusterer.fit(windows)
 
         if self.verbose:
