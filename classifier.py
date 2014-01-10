@@ -70,10 +70,11 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
         histograms = np.array(histograms)
         return self.classifier.predict(histograms)
 
-
-def predict_sequence(sequence, clf, hmm):
-    """
-    Takes a sequence of segmented audio files, combines predictions from clf
-    with language priors from the hmm to predict likely output
-    """
-    pass
+    def predict_proba(self, X):
+        if X.dtype != object:  # dtype of numpy arrays
+            raise Exception("Predict takes an array of items to classify, not a single item")
+        histograms = []
+        for example in X:
+            histograms.append(self._create_histogram(example))
+        histograms = np.array(histograms)
+        return self.classifier.predict_proba(histograms)
