@@ -3,8 +3,8 @@ import numpy as np
 import cv2
 import matplotlib.pylab as plt
 from random import random
-from scikits.talkbox.features import mfcc
 # Reference: https://github.com/cournape/talkbox/blob/master/scikits/talkbox/features/mfcc.py
+from scikits.talkbox.features import mfcc
 
 
 def fft(s):

@@ -65,6 +65,15 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
         histograms = np.array(histograms)
         return self.classifier.predict(histograms)
 
+    def predict2(self, X):
+        if X.dtype != object:  # dtype of numpy arrays
+            raise Exception("Predict takes an array of items to classify, not a single item")
+        histograms = []
+        for example in X:
+            histograms.append(self._create_histogram(example))
+        histograms = np.array(histograms)
+        return [self.classifier.classes_[np.argmax(a)] for a in self.classifier.predict_proba(histograms)]
+
     def predict_proba(self, X):
         if X.dtype != object:  # dtype of numpy arrays
             raise Exception("Predict takes an array of items to classify, not a single item")
