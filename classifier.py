@@ -41,6 +41,7 @@ class SoundClassifier(BaseEstimator, ClassifierMixin):
             print("Clustering patches...")
         if self.patch_clusterer is None:
             self.patch_clusterer = KMeans(init='k-means++', n_clusters=self.patch_types, n_init=3)
+
         self.patch_clusterer.fit(windows)
 
         if self.verbose:
